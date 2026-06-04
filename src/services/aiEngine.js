@@ -21,17 +21,16 @@ export const generateAITags = async (title, description) => {
 };
 
 
-// ─── NEW MEMORY-AWARE CONCIERGE ENGINE ───────────────────────────────────────
-// This version takes the entire chat history array to track what was just said!
+// ─── MEMORY-AWARE CONCIERGE ENGINE ──────────────────────────────────────────
+// This function now automatically looks at the chat history so it doesn't get confused!
 export const getConciergeResponse = (userInput, fullHistory = []) => {
   const text = userInput.toLowerCase().trim();
   
-  // Find the very last thing the AI said to the user before this message
+  // Find the very last thing the AI said to you on your screen
   const aiMessages = fullHistory.filter(m => m.role === 'ai');
   const lastAiText = aiMessages.length > 0 ? aiMessages[aiMessages.length - 1].text.toLowerCase() : "";
 
-  // 1. DYNAMIC CONTEXTUAL MEMORY CHECK
-  // If the user is replying "I don't like that" or "no" to a previous suggestion
+  // 1. MEMORY CHECK: If you reply "I don't like that" to something it just said
   if (
     text.includes("don't like") || 
     text.includes("dont like") || 
@@ -45,27 +44,24 @@ export const getConciergeResponse = (userInput, fullHistory = []) => {
     if (lastAiText.includes("glass") || lastAiText.includes("nordic") || lastAiText.includes("woods")) {
       return "Understood, skipping the glass cabins. If looking at trees isn't doing it for you, we could pivot to a clean, ultra-modern urban setup instead—like our Brutalist lofts in Berlin or Antwerp.";
     }
-    if (lastAiText.includes("cheap") || lastAiText.includes("baseline") || lastAiText.includes("395")) {
-      return "Fair enough, let's look past the budget options. If you want to see our highest-tier, top-percentile architectural concepts, I can break down the premium $2,450 ocean villas or the high-end Lofoten islands obsidian nodes.";
-    }
-    return "No worries at all, let's scratch that off the list. Tell me what you're actually in the mood for right now—more nature, or a sleek city space?";
+    return "No worries at all, let's scratch that suggestion off the list. Tell me what you're actually in the mood for right now—more quiet nature, or a sleek city space?";
   }
 
-  // 2. STANDARD CONVERSATIONAL ROUTING
-  if (text === "hi" || text === "hello" || text === "hey" || text.includes("good morning") || text.includes("good evening")) {
+  // 2. STANDARD KEYWORD RESPONSES
+  if (text === "hi" || text === "hello" || text === "hey") {
     return "Hello! Lovely to connect with you. How can I help you find the perfect space today?";
   }
 
   if (text.includes("wifi") || text.includes("internet") || text.includes("starlink")) {
-    return "Oh, definitely. Reliable connectivity is an absolute priority here. Every single one of our 50 global properties is equipped with high-speed Starlink setups, so you'll be completely set for zero-lag remote work, no matter how isolated the location is.";
+    return "Oh, definitely. Reliable connectivity is an absolute priority here. Every single one of our 50 global properties is equipped with high-speed Starlink setups, so you'll be completely set for zero-lag remote work.";
   }
 
   if (text.includes("cheap") || text.includes("low") || text.includes("price") || text.includes("prices") || text.includes("cost")) {
-    return "I can absolutely guide you through our baseline options. Our entry-level premium spaces start around $395 per night—primarily within our European urban minimalist nodes like the Berlin or Antwerp layouts. Let me know if you'd like me to help you filter down to those!";
+    return "I can absolutely guide you through our baseline options. Our entry-level premium spaces start around $395 per night—primarily within our European urban minimalist nodes like the Berlin or Antwerp layouts.";
   }
 
   if (text.includes("glass") || text.includes("nordic") || text.includes("woods")) {
-    return "The Glass Pavilions are stunning choices! We have several variations nestled directly into secluded Nordic forests. They're built with full thermal-insulated glass layers, so you get panoramic views of the nature outside while remaining perfectly cozy.";
+    return "The Glass Pavilions are stunning choices! We have several variations nestled directly into secluded Nordic forests. They're built with full thermal-insulated glass layers, so you get panoramic views of nature.";
   }
   
   if (text.includes("pool") || text.includes("ocean") || text.includes("beach") || text.includes("costa")) {
