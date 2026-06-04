@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Search, User, Sparkles, MapPin, X, Send, SlidersHorizontal, Cpu, ShieldCheck } from 'lucide-react';
+import { Search, User, Sparkles, MapPin, X, Send, SlidersHorizontal, Cpu, ShieldCheck, Compass, Eye, Trees } from 'lucide-react';
 import { generateAIDescription, generateAITags, getConciergeResponse } from './services/aiEngine';
 
-// REALISTIC LUXURY DATASET GENERATOR (50 ITEMS)
+// REALISTIC LUXURY DATASET GENERATOR (50 ITEMS WITH STRUCTURAL VIBE TAGS)
 const GENERATE_50_LISTINGS = () => {
   const architectures = [
-    { title: "Glass Pavilion", loc: "Nordic Woods", price: 1495, img: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800", tags: ["glass", "sauna"] },
-    { title: "Monolith Loft", loc: "Berlin Mitte", price: 425, img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800", tags: ["brutalist", "urban"] },
-    { title: "Zen Studio", loc: "Kyoto Suburbs", price: 695, img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800", tags: ["minimalist", "nature"] },
-    { title: "Concrete Retreat", loc: "Reykjavík Outskirts", price: 1150, img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=800", tags: ["concrete", "geothermal"] },
-    { title: "Obsidian Cube", loc: "Lofoten Islands", price: 1895, img: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&q=80&w=800", tags: ["fjord", "isolated"] },
-    { title: "Brutalist Atelier", loc: "Antwerp Centre", price: 395, img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&q=80&w=800", tags: ["studio", "design"] },
-    { title: "Timber Sanctuary", loc: "Black Forest", price: 545, img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=800", tags: ["wood", "sauna"] },
-    { title: "Linear Villa", loc: "Costa Brava", price: 2450, img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800", tags: ["pool", "ocean"] }
+    { title: "Glass Pavilion", loc: "Nordic Woods", price: 1495, img: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&q=80&w=800", tags: ["glass", "sauna", "isolated"], vibe: "isolated" },
+    { title: "Monolith Loft", loc: "Berlin Mitte", price: 425, img: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800", tags: ["brutalist", "urban"], vibe: "urban" },
+    { title: "Zen Studio", loc: "Kyoto Suburbs", price: 695, img: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800", tags: ["minimalist", "nature", "onsen"], vibe: "wellness" },
+    { title: "Concrete Retreat", loc: "Reykjavík Outskirts", price: 1150, img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=800", tags: ["concrete", "geothermal"], vibe: "wellness" },
+    { title: "Obsidian Cube", loc: "Lofoten Islands", price: 1895, img: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&q=80&w=800", tags: ["fjord", "isolated"], vibe: "isolated" },
+    { title: "Brutalist Atelier", loc: "Antwerp Centre", price: 395, img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&q=80&w=800", tags: ["studio", "design", "urban"], vibe: "urban" },
+    { title: "Timber Sanctuary", loc: "Black Forest", price: 545, img: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=800", tags: ["wood", "sauna", "isolated"], vibe: "isolated" },
+    { title: "Linear Villa", loc: "Costa Brava", price: 2450, img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800", tags: ["pool", "ocean", "panoramic"], vibe: "urban" }
   ];
 
   let list = [];
@@ -26,7 +26,8 @@ const GENERATE_50_LISTINGS = () => {
       location: template.loc,
       price: priceVariance,
       image: template.img,
-      features: [...template.tags, "wifi"]
+      features: [...template.tags, "wifi"],
+      vibe: template.vibe
     });
   }
   return list;
@@ -36,25 +37,26 @@ const DATASET = GENERATE_50_LISTINGS();
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeVibe, setActiveVibe] = useState("all"); // UX Vibe Shifter State
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([{ role: 'ai', text: "Welcome back. Our system indices are fully synchronized. How can I guide your stay selection?" }]);
   const [input, setInput] = useState("");
 
-  // States for your original AI generator panel
   const [synthesizedNode, setSynthesizedNode] = useState(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
 
-  // Search filter loop
+  // DUAL-INDEX FILTER ENGINE (Processes Text Input + Vibe Shifter state together)
   const filteredListings = DATASET.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(query) ||
-      item.location.toLowerCase().includes(query) ||
-      item.features.some(tag => tag.toLowerCase().includes(query))
-    );
+    const matchesSearch = 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.features.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+    const matchesVibe = activeVibe === "all" || item.vibe === activeVibe;
+
+    return matchesSearch && matchesVibe;
   });
 
-  // Handle the text conversation
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -71,7 +73,6 @@ export default function App() {
     }, 400);
   };
 
-  // Triggers your original code functions smoothly inside the interface
   const runAISynthesis = async (item) => {
     setIsSynthesizing(true);
     setSynthesizedNode(null);
@@ -92,14 +93,14 @@ export default function App() {
       <nav className="sticky top-0 z-40 flex items-center justify-between border-b border-zinc-200/60 bg-white/80 px-8 py-5 backdrop-blur-xl">
         <div className="text-sm font-bold tracking-[0.3em] uppercase">ÆTHERSTAY</div>
         <div className="flex items-center gap-6">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-100 px-3 py-1 rounded-full">{filteredListings.length} Nodes Loaded</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 bg-zinc-100 px-3 py-1 rounded-full">{filteredListings.length} Nodes Rendered</div>
           <div className="h-9 w-9 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold shadow-sm">SA</div>
         </div>
       </nav>
 
       <main className="mx-auto max-w-7xl px-8 py-16">
-        {/* INTERACTIVE ENGINE BAR */}
-        <div className="max-w-2xl mb-12">
+        {/* INTERACTIVE ENGINE HEADING */}
+        <div className="max-w-2xl mb-8">
           <h1 className="text-5xl font-light tracking-tight text-zinc-900 mb-8 leading-[1.1]">
             Search our <span className="italic font-serif">autonomous</span> landscape.
           </h1>
@@ -107,7 +108,7 @@ export default function App() {
             <Search className="ml-3 text-zinc-400" size={18} />
             <input 
               type="text" 
-              placeholder="Search 50 units by word (e.g., 'wifi', 'sauna', 'Kyoto', 'brutalist')..." 
+              placeholder="Search 50 units by keyword..." 
               className="flex-1 py-2 text-sm bg-transparent outline-none placeholder-zinc-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -118,7 +119,35 @@ export default function App() {
           </div>
         </div>
 
-        {/* ASYNC ANALYSIS PREVIEW WINDOW (YOUR CODE AT WORK) */}
+        {/* UX VIBE SHIFTER CONTROL STRIP */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-8 scrollbar-none border-b border-zinc-100 mb-12">
+          <button 
+            onClick={() => setActiveVibe("all")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeVibe === "all" ? "bg-zinc-900 text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:border-zinc-300"}`}
+          >
+            <Compass size={14} /> Index All
+          </button>
+          <button 
+            onClick={() => setActiveVibe("isolated")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeVibe === "isolated" ? "bg-zinc-900 text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:border-zinc-300"}`}
+          >
+            <Trees size={14} /> Isolated Nature
+          </button>
+          <button 
+            onClick={() => setActiveVibe("urban")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeVibe === "urban" ? "bg-zinc-900 text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:border-zinc-300"}`}
+          >
+            <Eye size={14} /> Brutalist Urban
+          </button>
+          <button 
+            onClick={() => setActiveVibe("wellness")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeVibe === "wellness" ? "bg-zinc-900 text-white shadow-sm" : "bg-white border border-zinc-200 text-zinc-400 hover:text-zinc-900 hover:border-zinc-300"}`}
+          >
+            <Sparkles size={14} /> Deep Wellness
+          </button>
+        </div>
+
+        {/* ASYNC ANALYSIS PREVIEW WINDOW */}
         {(isSynthesizing || synthesizedNode) && (
           <div className="mb-16 p-8 bg-zinc-900 text-white rounded-[2.5rem] shadow-xl animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
@@ -152,19 +181,19 @@ export default function App() {
           </div>
         )}
 
-        {/* SEARCH LABELS FOOTPRINT */}
+        {/* GRID LAYOUT */}
         {filteredListings.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-zinc-200 rounded-3xl bg-white">
-            <p className="text-zinc-400 text-sm">No architectural footprints match your parameters.</p>
+            <p className="text-zinc-400 text-sm">No architectural footprints match your selected vibe metrics.</p>
           </div>
         ) : (
           <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {filteredListings.map((item) => (
-              <div key={item.id} className="group flex flex-col bg-white border border-zinc-100 rounded-[2.5rem] overflow-hidden p-4 shadow-sm hover:shadow-md transition-all duration-300">
+              <div key={item.id} className="group flex flex-col bg-white border border-zinc-100 rounded-[2.5rem] overflow-hidden p-4 shadow-sm hover:shadow-md transition-all duration-300 animate-in fade-in zoom-in-95 duration-200">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] bg-zinc-50 mb-5">
                   <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-102" />
                   <div className="absolute bottom-4 left-4 flex gap-1.5 flex-wrap">
-                    {item.features.map((tag, idx) => (
+                    {item.features.slice(0, 3).map((tag, idx) => (
                       <span key={idx} className="bg-white/90 backdrop-blur-md text-[9px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full text-zinc-800 shadow-sm">
                         {tag}
                       </span>
@@ -205,7 +234,7 @@ export default function App() {
         )}
       </main>
 
-      {/* CHAT SYNCHRONIZATION BAR */}
+      {/* FLOATING CHAT SYNC */}
       {showChat && (
         <div className="fixed bottom-24 right-8 w-[380px] h-[500px] bg-white shadow-2xl rounded-[2.5rem] border border-zinc-200/60 flex flex-col overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="p-5 border-b border-zinc-100 flex items-center justify-between bg-zinc-900 text-white">
@@ -236,7 +265,7 @@ export default function App() {
         </div>
       )}
 
-      {/* FLOATING ACTION TRIGGER */}
+      {/* FLOATING CHAT TRIGGER */}
       <button 
         onClick={() => setShowChat(!showChat)} 
         className="fixed bottom-8 right-8 flex items-center gap-2 bg-zinc-900 text-white px-6 py-4 rounded-full shadow-xl hover:scale-102 transition-all z-50 text-xs font-bold uppercase tracking-widest"
