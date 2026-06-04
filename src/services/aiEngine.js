@@ -2,14 +2,9 @@
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Keep your original metadata generators exactly as they were
 export const generateAIDescription = async (title, location, manualText) => {
   await delay(1200);
-  const vibes = [
-    "A precise curation of organic textures and high-tech minimalism.",
-    "Engineered for deep focus, creative output, and restorative recovery cycles.",
-    "A hyper-efficient architectural footprint offering profound spatial luxury."
-  ];
+  const vibes = ["A precise curation of organic textures and high-tech minimalism.", "Engineered for deep focus, creative output, and restorative recovery cycles.", "A hyper-efficient architectural footprint offering profound spatial luxury."];
   const elements = ["Spatial Audio Zoning", "Automated Circadian Lighting Grid", "Filtered HEPA Clean-Air Envelope"];
   return {
     title: `AI Optimized: ${title || 'Aether Sandbox'}`,
@@ -26,24 +21,43 @@ export const generateAITags = async (title, description) => {
 };
 
 
-// ─── NEW FLUID CONCIERGE ENGINE ─────────────────────────────────────────────
-// No more robotic copy-pasting. This mimics a natural, helpful conversation.
-export const getConciergeResponse = (userInput) => {
+// ─── NEW MEMORY-AWARE CONCIERGE ENGINE ───────────────────────────────────────
+// This version takes the entire chat history array to track what was just said!
+export const getConciergeResponse = (userInput, fullHistory = []) => {
   const text = userInput.toLowerCase().trim();
+  
+  // Find the very last thing the AI said to the user before this message
+  const aiMessages = fullHistory.filter(m => m.role === 'ai');
+  const lastAiText = aiMessages.length > 0 ? aiMessages[aiMessages.length - 1].text.toLowerCase() : "";
 
-  // 1. Handle common greetings casually and warmly
-  if (text === "hi" || text === "hello" || text === "hey" || text.includes("good morning") || text.includes("good evening")) {
-    const greetings = [
-      "Hello! Lovely to connect with you. How can I help you find the perfect space today?",
-      "Hi there! Welcome back. What kind of architectural vibe or location are you looking to explore?",
-      "Good morning! Our system is ready. How can I assist with your stay selection today?"
-    ];
-    return greetings[Math.floor(Math.random() * greetings.length)];
+  // 1. DYNAMIC CONTEXTUAL MEMORY CHECK
+  // If the user is replying "I don't like that" or "no" to a previous suggestion
+  if (
+    text.includes("don't like") || 
+    text.includes("dont like") || 
+    text === "no" || 
+    text.includes("not a fan") || 
+    text.includes("something else")
+  ) {
+    if (lastAiText.includes("costa brava") || lastAiText.includes("pool") || lastAiText.includes("ocean")) {
+      return "Got it—no beach vibes. Let's pivot away from the sun completely. How about something tucked deep into the mountains, like our isolated Nordic Glass Pavilions or a snowy retreat in Reykjavík?";
+    }
+    if (lastAiText.includes("glass") || lastAiText.includes("nordic") || lastAiText.includes("woods")) {
+      return "Understood, skipping the glass cabins. If looking at trees isn't doing it for you, we could pivot to a clean, ultra-modern urban setup instead—like our Brutalist lofts in Berlin or Antwerp.";
+    }
+    if (lastAiText.includes("cheap") || lastAiText.includes("baseline") || lastAiText.includes("395")) {
+      return "Fair enough, let's look past the budget options. If you want to see our highest-tier, top-percentile architectural concepts, I can break down the premium $2,450 ocean villas or the high-end Lofoten islands obsidian nodes.";
+    }
+    return "No worries at all, let's scratch that off the list. Tell me what you're actually in the mood for right now—more nature, or a sleek city space?";
   }
 
-  // 2. Handle specific inquiries with natural, conversation-first framing
+  // 2. STANDARD CONVERSATIONAL ROUTING
+  if (text === "hi" || text === "hello" || text === "hey" || text.includes("good morning") || text.includes("good evening")) {
+    return "Hello! Lovely to connect with you. How can I help you find the perfect space today?";
+  }
+
   if (text.includes("wifi") || text.includes("internet") || text.includes("starlink")) {
-    return "Oh, definitely. Reliable connectivity is an absolute priority here. Every single one of our 50 global properties is equipped with high-speed Starlink setups, so you'll be completely set for zero-lag remote work or streaming, no matter how isolated the location is.";
+    return "Oh, definitely. Reliable connectivity is an absolute priority here. Every single one of our 50 global properties is equipped with high-speed Starlink setups, so you'll be completely set for zero-lag remote work, no matter how isolated the location is.";
   }
 
   if (text.includes("cheap") || text.includes("low") || text.includes("price") || text.includes("prices") || text.includes("cost")) {
@@ -62,6 +76,5 @@ export const getConciergeResponse = (userInput) => {
     return "You're so welcome! Let me know if you need anything else mapped out.";
   }
 
-  // 3. Smart, non-robotic fallback fallback that actively tries to guide you based on what you typed
-  return `I'm tracking your inquiry about "${userInput}". While I don't have a rigid response indexed for that exact phrase, try looking for structural definitions on the dashboard like 'wifi', 'sauna', 'brutalist', or 'Kyoto' and I can give you the breakdown!`;
+  return `I'm tracking your inquiry about "${userInput}". Try looking for specific terms on the dashboard like 'wifi', 'sauna', 'brutalist', or 'Kyoto' and I can give you the breakdown!`;
 };
